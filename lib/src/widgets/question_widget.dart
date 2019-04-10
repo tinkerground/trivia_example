@@ -8,28 +8,32 @@ class QuestionWidget extends StatelessWidget {
 
   final Question question;
   final TriviaBloc bloc;
-
+//'${bloc.triviaState.value.questionIndex} - ${question.question}'
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14.0),
       alignment: Alignment.center,
       height: 18 * 4.0,
-      child: Text(
-        '${bloc.triviaState.value.questionIndex} - ${question.question}',
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 18.0,
-          fontWeight: FontWeight.w500,
-          color: Colors.white,
-          shadows: [
-            Shadow(
-              blurRadius: 2.0,
-              color: Colors.lightBlueAccent,
+      child: Column(
+        children: <Widget>[
+          Text(
+            '${question.question}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  blurRadius: 2.0,
+                  color: Colors.lightBlueAccent,
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        ],
+      )
     );
   }
 }

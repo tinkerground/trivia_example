@@ -53,7 +53,7 @@ class AppState extends AppStateModel {
   final categoryChosen = StreamedValue<Category>();
   final questions = StreamedList<Question>();
   final questionsDifficulty =
-      StreamedValue<QuestionDifficulty>(initialData: QuestionDifficulty.medium);
+      StreamedValue<QuestionDifficulty>(initialData: QuestionDifficulty.easy);
 
   final questionsAmount = StreamedTransformed<String, String>();
 
@@ -115,7 +115,7 @@ class AppState extends AppStateModel {
         number: int.parse(questionsAmount.value),
         category: categoryChosen.value,
         difficulty: questionsDifficulty.value,
-        type: QuestionType.multiple);
+        type: QuestionType.boolean);
   }
 
   void setCategory(Category category) => categoryChosen.value = category;

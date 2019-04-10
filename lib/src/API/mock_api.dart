@@ -8,17 +8,29 @@ import '../models/category.dart';
 import '../models/question.dart';
 
 import 'api_interface.dart';
-
+import 'dart:math';
 class MockAPI implements QuestionsAPI {
   @override
   Future<bool> getCategories(StreamedList<Category> categories) async {
     categories.value = [];
 
     categories.addElement(
-      Category(id: 1, name: 'Category demo'),
+      Category(id: 1, name: 'Addition'),
+    );
+
+    categories.addElement(
+      Category(id: 2, name: 'Subtraction'),
+    );
+
+    categories.addElement(
+      Category(id: 3, name: 'Multiplication'),
     );
     return true;
   }
+
+  var question = "";
+  var answer = "";
+  var incorrectAnswers = [];
 
   @override
   Future<bool> getQuestions(
@@ -27,17 +39,192 @@ class MockAPI implements QuestionsAPI {
       Category category,
       QuestionDifficulty difficulty,
       QuestionType type}) async {
-    const json =
-        "{\"response_code\":0,\"results\":[{\"category\":\"General Knowledge\",\"type\":\"multiple\",\"difficulty\":\"easy\",\"question\":\"What is the largest organ of the human body?\",\"correct_answer\":\"Skin\",\"incorrect_answers\":[\"Heart\",\"large Intestine\",\"Liver\"]},{\"category\":\"Science: Mathematics\",\"type\":\"multiple\",\"difficulty\":\"easy\",\"question\":\"In Roman Numerals, what does XL equate to?\",\"correct_answer\":\"40\",\"incorrect_answers\":[\"60\",\"15\",\"90\"]},{\"category\":\"Entertainment: Television\",\"type\":\"multiple\",\"difficulty\":\"easy\",\"question\":\"Grant Gustin plays which superhero on the CW show of the same name?\",\"correct_answer\":\"The Flash\",\"incorrect_answers\":[\"The Arrow\",\"Black Canary\",\"Daredevil\"]},{\"category\":\"Entertainment: Cartoon & Animations\",\"type\":\"multiple\",\"difficulty\":\"easy\",\"question\":\"In the 1993 Disney animated series, what is the name of Bonker\'s second partner?\",\"correct_answer\":\"Miranda Wright\",\"incorrect_answers\":[\"Dick Tracy\",\"Eddie Valiant\",\"Dr. Ludwig von Drake\"]},{\"category\":\"Geography\",\"type\":\"multiple\",\"difficulty\":\"easy\",\"question\":\"How many countries does Mexico border?\",\"correct_answer\":\"3\",\"incorrect_answers\":[\"2\",\"4\",\"1\"]}]}";
 
-    final jsonResponse = convert.jsonDecode(json);
+    var qdifficulty;
+    var qtype;
+    int randomNum = 0;
+    int max = 10;
+    switch (difficulty) {
+      case QuestionDifficulty.easy:
+        qdifficulty = 'easy';
+        max = 20;
+        break;
+      case QuestionDifficulty.medium:
+        qdifficulty = 'medium';
+        max = 50;
+        break;
+      case QuestionDifficulty.hard:
+        qdifficulty = 'hard';
+        max = 100;
+        break;
+      default:
+        qdifficulty = 'easy';
+        break;
+    }
 
-    final result = (jsonResponse['results'] as List)
-        .map((question) => QuestionModel.fromJson(question));
 
+    switch (type) {
+      case QuestionType.boolean:
+        qtype = 'boolean';
+        break;
+      case QuestionType.multiple:
+        qtype = 'multiple';
+        break;
+      default:
+        qtype = 'boolean';
+        break;
+    }
+
+    var json =
+        "{\"response_code\":0,\"results\":[";
+
+    var total = 10;
+    var counter = 0;
+
+    for(int i=0; i < total; i++) {
+      _generateQuestion(max, category, qdifficulty);
+
+      json += "{\"category\":\"${category.name}\","
+          "\"type\":\"$qtype\",\"difficulty\":\"$qdifficulty\","
+          "\"question\":\"${question}\","
+          "\"correct_answer\":\"${answer}\","
+          "\"incorrect_answers\":"+incorrectAnswers.toString()+"}";
+
+      if (counter < total-1) {
+        json += ",";
+      }
+
+      counter++;
+    }
+
+    json += "]}";
+
+    var jsonResponse = convert.jsonDecode(json);
+    var result = (jsonResponse['results'] as List)
+        .map(
+            (question) => QuestionModel.fromJson(question)).toList();
     questions.value =
         result.map((question) => Question.fromQuestionModel(question)).toList();
 
     return true;
   }
+
+  _generateQuestion(int max, Category category, String level) {
+    var randomNum = Random().nextInt(max);
+    if (randomNum < 1) {
+      randomNum = 10;
+    }
+    switch(category.name.toLowerCase()) {
+      case "addition":
+        var num = randomNum + randomNum;
+        if (num % 2 == 0) {
+          var spoiler = num + Random().nextInt(10);
+          if (randomNum + randomNum == spoiler) {
+            spoiler++;
+          }
+          question = "$randomNum + $randomNum = $spoiler";
+          answer = "false";
+          incorrectAnswers = [true];
+        } else {
+          question = "$randomNum + $randomNum = $num";
+          answer = "true";
+          incorrectAnswers = [false];
+        }
+
+        break;
+
+      case "subtraction":
+        var right = randomNum - Random().nextInt(randomNum);
+        var num = randomNum - right;
+        if (num % 2 == 0) {
+          var spoiler = num - Random().nextInt(10);
+          if (randomNum - right == spoiler) {
+            spoiler++;
+          }
+          question = "$randomNum - $right = $spoiler";
+          answer = "false";
+          incorrectAnswers = [true];
+        } else {
+          question = "$randomNum - $right = $num";
+          answer = "true";
+          incorrectAnswers = [false];
+        }
+
+        break;
+      case "multiplication":
+        var num = randomNum * randomNum;
+        if (num % 2 == 0) {
+          var spoiler = num * Random().nextInt(10);
+          if (randomNum * randomNum == spoiler) {
+            spoiler++;
+          }
+          question = "$randomNum X $randomNum = $spoiler";
+          answer = "false";
+          incorrectAnswers = [true];
+        } else {
+          question = "$randomNum X $randomNum = $num";
+          answer = "true";
+          incorrectAnswers = [false];
+        }
+
+        break;
+
+
+    }
+  }
+}
+
+class RequestModel {
+  RequestModel({this.response_code, this.results});
+
+  factory RequestModel.fromJson(Map<String, dynamic> json) {
+    return RequestModel(
+        response_code: json['response_code'],
+        results: (json['results'] as List));
+  }
+
+  Map<String, dynamic> toJson() => _RequestModelToJson(this);
+
+  _RequestModelToJson(RequestModel instance) => <String, dynamic> {
+    'response_code': instance.response_code,
+    'results': instance.results
+  };
+
+  int response_code;
+  List<QuizModel> results;
+}
+
+class QuizModel {
+  QuizModel({this.category, this.type, this.difficulty,
+    this.question, this.correctAnswer, this.incorrectAnswers});
+
+  factory QuizModel.fromJson(Map<String, dynamic> json) {
+    return QuizModel(
+        category: json['category'],
+        type: json['type'],
+        difficulty: json['difficulty'],
+        question: json['question'],
+        correctAnswer: json['correct_answer'],
+        incorrectAnswers: (json['incorrect_answers'] as List)
+            .map((answer) => answer.toString())
+            .toList());
+  }
+
+  Map<String, dynamic> toJson() => _QuizModelToJson(this);
+
+  _QuizModelToJson(QuizModel instance) => <String, dynamic> {
+    'category': instance.category,
+    'type': instance.type,
+    'difficulty': instance.difficulty,
+    'question': instance.question,
+    'correct_answer': instance.correctAnswer,
+    'incorrect_answers': instance.incorrectAnswers
+  };
+
+  String category;
+  String type;
+  String difficulty;
+  String question;
+  String correctAnswer;
+  List<String> incorrectAnswers;
 }

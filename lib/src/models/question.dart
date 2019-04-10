@@ -1,6 +1,10 @@
+import 'package:json_annotation/json_annotation.dart';
+
 enum QuestionDifficulty { easy, medium, hard }
 
 enum QuestionType { boolean, multiple }
+
+enum QuestionCategory {addition, subtraction, multiplication}
 
 class QuestionModel {
   QuestionModel({this.question, this.correctAnswer, this.incorrectAnswers});
@@ -14,6 +18,14 @@ class QuestionModel {
             .toList());
   }
 
+  Map<String, dynamic> toJson() => _QuestionModelToJson(this);
+
+  _QuestionModelToJson(QuestionModel instance) => <String, dynamic> {
+    'question': instance.question,
+    'correct_answer': instance.correctAnswer,
+    'incorrect_answers': instance.incorrectAnswers
+  };
+
   String question;
   String correctAnswer;
   List<String> incorrectAnswers;
@@ -21,6 +33,7 @@ class QuestionModel {
 
 class Question {
   Question({this.question, this.answers, this.correctAnswerIndex});
+
   factory Question.fromQuestionModel(QuestionModel model) {
     final List<String> answers = []
       ..add(model.correctAnswer)
@@ -32,6 +45,8 @@ class Question {
     return Question(
         question: model.question, answers: answers, correctAnswerIndex: index);
   }
+
+
 
   String question;
   List<String> answers;
